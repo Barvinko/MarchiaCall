@@ -8,12 +8,14 @@ export class DiscordController {
   constructor(private readonly discordService: DiscordService) {}
 
   @Post('subscribe')
-  async addSubscriber(@Body() createSubscriberDto: CreateSubscriberDto): Promise<Subscriber> {
+  async addSubscriber(
+    @Body() createSubscriberDto: CreateSubscriberDto,
+  ): Promise<Subscriber> {
     return this.discordService.addSubscriber(createSubscriberDto);
   }
 
   @Delete('unsubscribe/:userId')
-  async unsubscribe(@Param('userId') userId: string): Promise<Subscriber> {
+  async unsubscribe(@Param('userId') userId: string): Promise<boolean> {
     return this.discordService.unsubscribe(userId);
   }
 
@@ -23,7 +25,9 @@ export class DiscordController {
   }
 
   @Post('send-message')
-  async sendMessage(@Body() messageDto: MessageDto): Promise<{ success: boolean }> {
+  async sendMessage(
+    @Body() messageDto: MessageDto,
+  ): Promise<{ success: boolean }> {
     await this.discordService.sendDirectMessage(messageDto);
     return { success: true };
   }
