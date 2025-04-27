@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { DiscordModule } from './discord/discord.module'; 
+import { DiscordModule } from './discord/discord.module';
 
 @Module({
   imports: [
