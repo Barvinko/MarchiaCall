@@ -60,26 +60,48 @@ export class DiscordService implements OnModuleInit {
       );
       if (message.author.bot) return;
 
-      if (message.content === '!subscribe') {
-        await this.addSubscriber({
-          userId: message.author.id,
-          username: message.author.username,
-        });
-        await message.reply(
-          `${message.author.username} успешно подписан на рассылку.`,
-        );
+      switch (message.content) {
+        case '!subscribe':
+          await this.addSubscriber({
+            userId: message.author.id,
+            username: message.author.username,
+          });
+          await message.reply(
+            `${message.author.username} успешно подписан на рассылку.`,
+          );
+          break;
+        case '!unsubscribe':
+          const answerUnsubscribe = await this.unsubscribe(
+            message.author.username,
+          );
+          await message.reply(
+            answerUnsubscribe
+              ? `${message.author.username} отписан от рассылки.`
+              : `${message.author.username} не был подписан.`,
+          );
+          break;
       }
 
-      if (message.content === '!unsubscribe') {
-        const answerUnsubscribe = await this.unsubscribe(
-          message.author.username,
-        );
-        await message.reply(
-          answerUnsubscribe
-            ? `${message.author.username} отписан от рассылки.`
-            : `${message.author.username} не был подписан.`,
-        );
-      }
+      // if (message.content === '!subscribe') {
+      //   await this.addSubscriber({
+      //     userId: message.author.id,
+      //     username: message.author.username,
+      //   });
+      //   await message.reply(
+      //     `${message.author.username} успешно подписан на рассылку.`,
+      //   );
+      // }
+
+      // if (message.content === '!unsubscribe') {
+      //   const answerUnsubscribe = await this.unsubscribe(
+      //     message.author.username,
+      //   );
+      //   await message.reply(
+      //     answerUnsubscribe
+      //       ? `${message.author.username} отписан от рассылки.`
+      //       : `${message.author.username} не был подписан.`,
+      //   );
+      // }
     });
 
     await this.client.login(this.configService.discordToken);
