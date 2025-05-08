@@ -12,4 +12,8 @@ export class ConfigService {
   get discordClientId(): string {
     return this.configService.get<string>('DISCORD_CLIENT_ID');
   }
+
+  get discordGuildId(): string {
+    return this.configService.get<string>('DISCORD_GUILD_ID');
+  }
 }

@@ -1,34 +1,16 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Param } from '@nestjs/common';
 import { DiscordService } from './discord.service';
-import { CreateSubscriberDto, MessageDto } from './dto/subscriber.dto';
-import { Subscriber } from './schemas/subscriber.schema';
+import { SendMessageDto } from './dto/message.dto';
 
 @Controller('discord')
 export class DiscordController {
   constructor(private readonly discordService: DiscordService) {}
 
-  @Post('subscribe')
-  async addSubscriber(
-    @Body() createSubscriberDto: CreateSubscriberDto,
-  ): Promise<Subscriber> {
-    return this.discordService.addSubscriber(createSubscriberDto);
-  }
-
-  @Delete('unsubscribe/:userId')
-  async unsubscribe(@Param('userId') userId: string): Promise<boolean> {
-    return this.discordService.unsubscribe(userId);
-  }
-
-  @Get('subscribers')
-  async getSubscribers(): Promise<Subscriber[]> {
-    return this.discordService.getSubscribers();
-  }
-
-  @Post('send-message')
+  @Post('send/:roleType')
   async sendMessage(
-    @Body() messageDto: MessageDto,
-  ): Promise<{ success: boolean }> {
-    await this.discordService.sendDirectMessage(messageDto);
-    return { success: true };
+    @Param('roleType') roleType: 'krein' | 'gadyav' | 'bozevin' | 'all',
+    @Body() messageDto: SendMessageDto,
+  ) {
+    return this.discordService.sendMessageByRole(roleType, messageDto);
   }
 }
