@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Client, Message, TextChannel, GuildMember } from 'discord.js';
 import { ConfigService } from '../../config/config.service';
-import { MessageSendResult, MilitiaRoleNames } from '../interfaces/discord.interfaces';
+import {
+  MessageSendResult,
+  MilitiaRoleNames,
+} from '../interfaces/discord.interfaces';
 
 @Injectable()
 export class DiscordMessageService {
@@ -18,11 +21,11 @@ export class DiscordMessageService {
     try {
       // Получаем все доступные серверы
       const guilds = this.client.guilds.cache;
-      
+
       for (const [_, guild] of guilds) {
         // Получаем все текстовые каналы на сервере
         const channels = await guild.channels.fetch();
-        
+
         for (const [_, channel] of channels) {
           // Проверяем, является ли канал текстовым
           if (channel.isTextBased() && !channel.isDMBased()) {
@@ -39,10 +42,13 @@ export class DiscordMessageService {
           }
         }
       }
-      
+
       return null;
     } catch (error) {
-      this.logger.error(`Ошибка при поиске сообщения с ID ${messageId}:`, error);
+      this.logger.error(
+        `Ошибка при поиске сообщения с ID ${messageId}:`,
+        error,
+      );
       return null;
     }
   }
@@ -50,53 +56,73 @@ export class DiscordMessageService {
   // Получение участников с определенной ролью
   async getMembersByRole(roleName: string): Promise<GuildMember[]> {
     try {
-      const guild = this.client.guilds.cache.get(this.configService.discordGuildId);
+      const guild = this.client.guilds.cache.get(
+        this.configService.discordGuildId,
+      );
       if (!guild) {
         throw new Error('Сервер не найден');
       }
-      
+
       // Загружаем всех участников сервера (может потребоваться для больших серверов)
       await guild.members.fetch();
-      
+
       // Находим роль по имени
-      const role = guild.roles.cache.find(r => r.name === roleName);
+      const role = guild.roles.cache.find((r) => r.name === roleName);
       if (!role) {
         throw new Error(`Роль "${roleName}" не найдена на сервере`);
       }
-      
+
       // Получаем всех участников с этой ролью
-      return Array.from(guild.members.cache.filter(member => member.roles.cache.has(role.id)).values());
+      return Array.from(
+        guild.members.cache
+          .filter((member) => member.roles.cache.has(role.id))
+          .values(),
+      );
     } catch (error) {
-      this.logger.error(`Ошибка при получении участников с ролью ${roleName}:`, error);
+      this.logger.error(
+        `Ошибка при получении участников с ролью ${roleName}:`,
+        error,
+      );
       throw error;
     }
   }
 
   // Отправка сообщения участникам с определенной ролью
-  async sendMessageToRole(roleName: string, content: string): Promise<MessageSendResult> {
+  async sendMessageToRole(
+    roleName: string,
+    content: string,
+  ): Promise<MessageSendResult> {
     try {
       const members = await this.getMembersByRole(roleName);
-      this.logger.log(`Найдено ${members.length} участников с ролью ${roleName}`);
-      
+      this.logger.log(
+        `Найдено ${members.length} участников с ролью ${roleName}`,
+      );
+
       let success = 0;
       let failed = 0;
-      
+
       for (const member of members) {
         try {
           await member.send(content);
           success++;
-          
+
           // Небольшая задержка, чтобы избежать лимитов API Discord
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         } catch (error) {
-          this.logger.error(`Не удалось отправить сообщение участнику ${member.user.tag}:`, error);
+          this.logger.error(
+            `Не удалось отправить сообщение участнику ${member.user.tag}:`,
+            error,
+          );
           failed++;
         }
       }
-      
+
       return { success, failed };
     } catch (error) {
-      this.logger.error(`Ошибка при отправке сообщений участникам с ролью ${roleName}:`, error);
+      this.logger.error(
+        `Ошибка при отправке сообщений участникам с ролью ${roleName}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -107,55 +133,69 @@ export class DiscordMessageService {
       const roleNames = [
         MilitiaRoleNames.KREIN,
         MilitiaRoleNames.GADYAV,
-        MilitiaRoleNames.BOZEVIN
+        MilitiaRoleNames.BOZEVIN,
       ];
-      
-      const guild = this.client.guilds.cache.get(this.configService.discordGuildId);
-      
+
+      const guild = this.client.guilds.cache.get(
+        this.configService.discordGuildId,
+      );
+
       if (!guild) {
         throw new Error('Сервер не найден');
       }
-      
+
       // Загружаем всех участников
       await guild.members.fetch();
-      
+
       // Находим все нужные роли
-      const roles = roleNames.map(name => guild.roles.cache.find(r => r.name === name)).filter(r => r);
-      
+      const roles = roleNames
+        .map((name) => guild.roles.cache.find((r) => r.name === name))
+        .filter((r) => r);
+
       if (roles.length === 0) {
         throw new Error('Ни одна из ролей ополченцев не найдена');
       }
-      
+
       // Получаем всех участников с любой из этих ролей (без дубликатов)
       const membersSet = new Set<GuildMember>();
-      
+
       for (const role of roles) {
-        const membersWithRole = guild.members.cache.filter(member => member.roles.cache.has(role.id));
-        membersWithRole.forEach(member => membersSet.add(member));
+        const membersWithRole = guild.members.cache.filter((member) =>
+          member.roles.cache.has(role.id),
+        );
+        membersWithRole.forEach((member) => membersSet.add(member));
       }
-      
+
       const members = Array.from(membersSet);
-      this.logger.log(`Найдено ${members.length} уникальных участников с ролями ополченцев`);
-      
+      this.logger.log(
+        `Найдено ${members.length} уникальных участников с ролями ополченцев`,
+      );
+
       let success = 0;
       let failed = 0;
-      
+
       for (const member of members) {
         try {
           await member.send(content);
           success++;
-          
+
           // Небольшая задержка, чтобы избежать лимитов API Discord
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         } catch (error) {
-          this.logger.error(`Не удалось отправить сообщение участнику ${member.user.tag}:`, error);
+          this.logger.error(
+            `Не удалось отправить сообщение участнику ${member.user.tag}:`,
+            error,
+          );
           failed++;
         }
       }
-      
+
       return { success, failed };
     } catch (error) {
-      this.logger.error('Ошибка при отправке сообщений всем ополченцам:', error);
+      this.logger.error(
+        'Ошибка при отправке сообщений всем ополченцам:',
+        error,
+      );
       throw error;
     }
   }
